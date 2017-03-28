@@ -7,9 +7,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.hyphenate.chat.EMClient;
+import com.hyphenate.util.EasyUtils;
+
 import cn.ucai.superwechat.DemoHelper;
 import cn.ucai.superwechat.R;
-import com.hyphenate.util.EasyUtils;
 
 /**
  * 开屏页
