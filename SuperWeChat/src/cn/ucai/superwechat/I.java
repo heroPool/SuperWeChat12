@@ -129,6 +129,8 @@ public interface I {
     int MSG_UNKNOW = 999;                            //未知错误
     int MSG_ILLEGAL_REQUEST = -1;                                //非法请求
 
+
+//    http://101.251.196.90:8080/SuperWeChatServerV2.0/
     //	String SERVER_ROOT = "http://120.26.242.249:8080/SuperWeChatServerV2.0/";
     String SERVER_ROOT = "http://101.251.196.90:8080/SuperWeChatServerV2.0/";
 

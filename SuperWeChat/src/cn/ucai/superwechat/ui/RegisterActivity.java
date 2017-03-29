@@ -16,6 +16,7 @@ package cn.ucai.superwechat.ui;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,14 +28,16 @@ import com.hyphenate.exceptions.HyphenateException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import cn.ucai.superwechat.I;
 import cn.ucai.superwechat.R;
 import cn.ucai.superwechat.SuperWeChatHelper;
-import cn.ucai.superwechat.net.IUnRegisterModel;
+import cn.ucai.superwechat.net.IUserRegisterModel;
 import cn.ucai.superwechat.net.OnCompleteListener;
-import cn.ucai.superwechat.net.UnRegisterModel;
 import cn.ucai.superwechat.net.UserRegisterModel;
 import cn.ucai.superwechat.utils.CommonUtils;
+import cn.ucai.superwechat.utils.MD5;
 import cn.ucai.superwechat.utils.Result;
+import cn.ucai.superwechat.utils.ResultUtils;
 
 /**
  * register screen
@@ -49,23 +52,18 @@ public class RegisterActivity extends BaseActivity {
     @BindView(R.id.iv_username)
     ImageView ivUsername;
     @BindView(R.id.username)
-    EditText username;
+    EditText usernameEditText;
     @BindView(R.id.iv_password)
     ImageView ivPassword;
     @BindView(R.id.password)
-    EditText password;
+    EditText passwordEditText;
     @BindView(R.id.iv_password2)
     ImageView ivPassword2;
     @BindView(R.id.confirm_password)
-    EditText confirmPassword;
+    EditText confirmPwdEditText;
 
-    UserRegisterModel usergisterModel;
-    IUnRegisterModel ungisterModel;
+    IUserRegisterModel usergisterModel;
 
-
-    private EditText userNameEditText;
-    private EditText passwordEditText;
-    private EditText confirmPwdEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,17 +72,15 @@ public class RegisterActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         usergisterModel = new UserRegisterModel();
-        ungisterModel = new UnRegisterModel();
-
-        userNameEditText = (EditText) findViewById(R.id.username);
-        passwordEditText = (EditText) findViewById(R.id.password);
-        confirmPwdEditText = (EditText) findViewById(R.id.confirm_password);
     }
+
+    private static final String TAG = "RegisterActivity";
 
     public void register(View view) {
         final String usernick = userNickEditText.getText().toString().trim();
-        final String username = userNameEditText.getText().toString().trim();
+        final String username = usernameEditText.getText().toString().trim();
         final String pwd = passwordEditText.getText().toString().trim();
+        final String password = MD5.getMessageDigest(pwd);
         String confirm_pwd = confirmPwdEditText.getText().toString().trim();
 
         if (TextUtils.isEmpty(usernick)) {
@@ -93,7 +89,7 @@ public class RegisterActivity extends BaseActivity {
             return;
         } else if (TextUtils.isEmpty(username)) {
             Toast.makeText(this, getResources().getString(R.string.User_name_cannot_be_empty), Toast.LENGTH_SHORT).show();
-            userNameEditText.requestFocus();
+            usernameEditText.requestFocus();
             return;
         } else if (TextUtils.isEmpty(pwd)) {
             Toast.makeText(this, getResources().getString(R.string.Password_cannot_be_empty), Toast.LENGTH_SHORT).show();
@@ -113,77 +109,94 @@ public class RegisterActivity extends BaseActivity {
             pd.setMessage(getResources().getString(R.string.Is_the_registered));
             pd.show();
 
-            new Thread(new Runnable() {
-                public void run() {
-                    //先进行superwechat端注册
-                    usergisterModel.register(RegisterActivity.this, username, usernick, pwd, new OnCompleteListener() {
-                        @Override
-                        public void onSuccess(Object r) {
-                            Result result = (Result) r;
+            //进行superwechat端注册
+            usergisterModel.register(RegisterActivity.this, username, usernick, password, new OnCompleteListener<String>() {
+                @Override
+                public void onSuccess(String result) {
+                    if (result != null) {
+                        Result resultFromJson = ResultUtils.getResultFromJson(result, Result.class);
+                        if (resultFromJson.isRetMsg()) {
+                            Log.i(TAG, "超级微信注册，" + resultFromJson.toString());
+                            //进行环信注册
+                            EMCClientregister(username, password, pd);
 
-                            if (result != null && result.isRetMsg()) {
-                                //superwechat端注册成功再进行环信端注册
-                                EMCClientregister(username, pwd, pd);
-                            } else {
-                                Toast.makeText(RegisterActivity.this, "注册失败", Toast.LENGTH_SHORT).show();
-                            }
+                        } else if (resultFromJson.getRetCode() == I.MSG_REGISTER_USERNAME_EXISTS) {
+                            Toast.makeText(getApplicationContext(), getResources().getString(R.string.User_already_exists), Toast.LENGTH_SHORT).show();
+
+                        } else if (resultFromJson.getRetCode() == I.MSG_REGISTER_FAIL) {
+                            Toast.makeText(getApplicationContext(), getResources().getString(R.string.Registration_failed), Toast.LENGTH_SHORT).show();
                         }
-
-                        @Override
-                        public void onError(String error) {
-                            Toast.makeText(RegisterActivity.this, "注册失败" + error.toString(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }).start();
-
-        }
-    }
-
-    private void EMCClientregister(final String username, String pwd, final ProgressDialog pd) {
-        try {
-            // call method in SDK
-            EMClient.getInstance().createAccount(username, pwd);
-            runOnUiThread(new Runnable() {
-                public void run() {
-                    if (!RegisterActivity.this.isFinishing())
-                        pd.dismiss();
-                    // save current user
-                    SuperWeChatHelper.getInstance().setCurrentUserName(username);
-                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.Registered_successfully), Toast.LENGTH_SHORT).show();
-                    finish();
-                }
-            });
-        } catch (final HyphenateException e) {
-            runOnUiThread(new Runnable() {
-                public void run() {
-                    //环信注册失败，超级微信端再取消注册
-                    SuperWeChatClientungister(username);
-
-                    if (!RegisterActivity.this.isFinishing())
-                        pd.dismiss();
-                    int errorCode = e.getErrorCode();
-                    if (errorCode == EMError.NETWORK_ERROR) {
-                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.network_anomalies), Toast.LENGTH_SHORT).show();
-                    } else if (errorCode == EMError.USER_ALREADY_EXIST) {
-                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.User_already_exists), Toast.LENGTH_SHORT).show();
-                    } else if (errorCode == EMError.USER_AUTHENTICATION_FAILED) {
-                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.registration_failed_without_permission), Toast.LENGTH_SHORT).show();
-                    } else if (errorCode == EMError.USER_ILLEGAL_ARGUMENT) {
-                        Toast.makeText(getApplicationContext(), getResources().getString(R.string.illegal_user_name), Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getApplicationContext(), getResources().getString(R.string.Registration_failed), Toast.LENGTH_SHORT).show();
                     }
                 }
+
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(getApplicationContext(), error.toString(), Toast.LENGTH_SHORT).show();
+
+                }
             });
         }
     }
 
-    private void SuperWeChatClientungister(String username) {
-        ungisterModel.register(RegisterActivity.this, username, new OnCompleteListener() {
+    private void EMCClientregister(final String username, final String password, final ProgressDialog pd) {
+        new Thread(new Runnable() {
             @Override
-            public void onSuccess(Object result) {
+            public void run() {
+                try {
+                    // call method in SDK
+                    EMClient.getInstance().createAccount(username, password);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!RegisterActivity.this.isFinishing())
+                                pd.dismiss();
+                            // save current user
+                            SuperWeChatHelper.getInstance().setCurrentUserName(username);
+                            Toast.makeText(getApplicationContext(), getResources().getString(R.string.Registered_successfully), Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    });
 
+
+                } catch (final HyphenateException e) {
+
+                    //环信注册失败，超级微信端取消注册
+                    SuperWeChatClientungister(username);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!RegisterActivity.this.isFinishing())
+                                Log.i(TAG, "环信注册失败:" + e.getErrorCode());
+                            pd.dismiss();
+                            int errorCode = e.getErrorCode();
+                            if (errorCode == EMError.NETWORK_ERROR) {
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.network_anomalies), Toast.LENGTH_SHORT).show();
+                            } else if (errorCode == EMError.USER_ALREADY_EXIST) {
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.User_already_exists), Toast.LENGTH_SHORT).show();
+                            } else if (errorCode == EMError.USER_AUTHENTICATION_FAILED) {
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.registration_failed_without_permission), Toast.LENGTH_SHORT).show();
+                            } else if (errorCode == EMError.USER_ILLEGAL_ARGUMENT) {
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.illegal_user_name), Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.Registration_failed), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+
+
+                }
+            }
+        }).start();
+
+    }
+
+    private void SuperWeChatClientungister(String username) {
+        usergisterModel.unregister(RegisterActivity.this, username, new OnCompleteListener<String>() {
+            @Override
+            public void onSuccess(String result) {
+                Toast.makeText(RegisterActivity.this, "超级微信取消注册成功", Toast.LENGTH_SHORT).show();
             }
 
             @Override
