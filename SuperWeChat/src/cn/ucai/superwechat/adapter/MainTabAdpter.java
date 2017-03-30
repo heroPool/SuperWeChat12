@@ -1,4 +1,4 @@
-package cn.ucai.superwechat.ui;
+package cn.ucai.superwechat.adapter;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

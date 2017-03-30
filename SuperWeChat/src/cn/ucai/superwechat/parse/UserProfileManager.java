@@ -6,13 +6,13 @@ import android.util.Log;
 import com.hyphenate.EMValueCallBack;
 import com.hyphenate.chat.EMClient;
 import com.hyphenate.easeui.domain.EaseUser;
+import com.hyphenate.easeui.domain.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import cn.ucai.superwechat.SuperWeChatHelper;
 import cn.ucai.superwechat.SuperWeChatHelper.DataSyncListener;
-import cn.ucai.superwechat.domain.User;
 import cn.ucai.superwechat.net.IUserRegisterModel;
 import cn.ucai.superwechat.net.OnCompleteListener;
 import cn.ucai.superwechat.net.UserRegisterModel;
@@ -163,6 +163,7 @@ public class UserProfileManager {
                         Log.i("UserProfileManager", user.toString());
                         setCurrentAppUserNick(user.getMUserNick());
                         setCurrentAppUserAvatar(user.getAvatar());
+                        SuperWeChatHelper.getInstance().saveAppContact(user);
                     }
                 }
             }
