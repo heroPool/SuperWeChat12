@@ -196,7 +196,7 @@ public class RegisterActivity extends BaseActivity {
         usergisterModel.unregister(RegisterActivity.this, username, new OnCompleteListener<String>() {
             @Override
             public void onSuccess(String result) {
-                Toast.makeText(RegisterActivity.this, "超级微信取消注册成功", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterActivity.this, "超级微信取消注册", Toast.LENGTH_SHORT).show();
             }
 
             @Override

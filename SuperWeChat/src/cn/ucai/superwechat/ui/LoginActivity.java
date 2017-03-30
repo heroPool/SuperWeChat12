@@ -38,11 +38,8 @@ import cn.ucai.superwechat.SuperWeChatApplication;
 import cn.ucai.superwechat.SuperWeChatHelper;
 import cn.ucai.superwechat.db.SuperWeChatDBManager;
 import cn.ucai.superwechat.net.IUserRegisterModel;
-import cn.ucai.superwechat.net.OnCompleteListener;
 import cn.ucai.superwechat.net.UserRegisterModel;
 import cn.ucai.superwechat.utils.MD5;
-import cn.ucai.superwechat.utils.Result;
-import cn.ucai.superwechat.utils.ResultUtils;
 
 /**
  * Login screen
@@ -156,8 +153,10 @@ public class LoginActivity extends BaseActivity {
         final long start = System.currentTimeMillis();
         // call login method
         Log.d(TAG, "EMClient.getInstance().login");
-        //先进行超级微信登录
-        superWeChatlogin(currentUsername, currentPassword);
+        //进行环信登录
+        EMClientLogin(currentUsername, currentPassword, pd);
+//        //先进行超级微信登录
+//        superWeChatlogin(currentUsername, currentPassword);
 
     }
 
@@ -185,7 +184,8 @@ public class LoginActivity extends BaseActivity {
                 }
                 // get user's info (this should be get from App's server or 3rd party service)
                 SuperWeChatHelper.getInstance().getUserProfileManager().asyncGetCurrentUserInfo();
-
+                //从超级微信服务器下载用户信息
+                SuperWeChatHelper.getInstance().getUserProfileManager().asyncGetAppCurrentUserInfo();
                 Intent intent = new Intent(LoginActivity.this,
                         MainActivity.class);
                 startActivity(intent);
@@ -215,25 +215,24 @@ public class LoginActivity extends BaseActivity {
         });
     }
 
-    private void superWeChatlogin(final String username, final String password) {
-        userRegisterModel.login(LoginActivity.this, username, password, new OnCompleteListener<String>() {
-            @Override
-            public void onSuccess(String result) {
-                if (result != null) {
-                    Result resultFromJson = ResultUtils.getResultFromJson(result, Result.class);
-                    if (resultFromJson.isRetMsg()) {
-                        //进行环信登录
-                        EMClientLogin(username, password, pd);
-                    }
-                }
-            }
-
-            @Override
-            public void onError(String error) {
-
-            }
-        });
-    }
+//    private void superWeChatlogin(final String username, final String password) {
+//        userRegisterModel.login(LoginActivity.this, username, password, new OnCompleteListener<String>() {
+//            @Override
+//            public void onSuccess(String result) {
+//                if (result != null) {
+//                    Result resultFromJson = ResultUtils.getResultFromJson(result, Result.class);
+//                    if (resultFromJson.isRetMsg()) {
+//
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onError(String error) {
+//
+//            }
+//        });
+//    }
 
 
     /**

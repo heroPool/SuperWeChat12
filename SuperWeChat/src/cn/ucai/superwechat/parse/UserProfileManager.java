@@ -1,16 +1,24 @@
 package cn.ucai.superwechat.parse;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.hyphenate.EMValueCallBack;
 import com.hyphenate.chat.EMClient;
-import cn.ucai.superwechat.SuperWeChatHelper;
-import cn.ucai.superwechat.SuperWeChatHelper.DataSyncListener;
-import cn.ucai.superwechat.utils.PreferenceManager;
 import com.hyphenate.easeui.domain.EaseUser;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import cn.ucai.superwechat.SuperWeChatHelper;
+import cn.ucai.superwechat.SuperWeChatHelper.DataSyncListener;
+import cn.ucai.superwechat.domain.User;
+import cn.ucai.superwechat.net.IUserRegisterModel;
+import cn.ucai.superwechat.net.OnCompleteListener;
+import cn.ucai.superwechat.net.UserRegisterModel;
+import cn.ucai.superwechat.utils.PreferenceManager;
+import cn.ucai.superwechat.utils.Result;
+import cn.ucai.superwechat.utils.ResultUtils;
 
 public class UserProfileManager {
 
@@ -33,6 +41,8 @@ public class UserProfileManager {
 	private boolean isSyncingContactInfosWithServer = false;
 
 	private EaseUser currentUser;
+	IUserRegisterModel userRegisterModel;
+
 
 	public UserProfileManager() {
 	}
@@ -44,6 +54,7 @@ public class UserProfileManager {
 		ParseManager.getInstance().onInit(context);
 		syncContactInfosListeners = new ArrayList<DataSyncListener>();
 		sdkInited = true;
+		userRegisterModel = new UserRegisterModel();
 		return true;
 	}
 
@@ -140,6 +151,27 @@ public class UserProfileManager {
 		return avatarUrl;
 	}
 
+	public void asyncGetAppCurrentUserInfo() {
+		userRegisterModel.loadUserInfo(appContext, EMClient.getInstance().getCurrentUser(), new OnCompleteListener<String>() {
+			@Override
+			public void onSuccess(String result) {
+				if (result != null) {
+                    Result resultFromJson = ResultUtils.getResultFromJson(result, User.class);
+                    if (resultFromJson != null && resultFromJson.isRetMsg()) {
+                      User user = (User) resultFromJson.getRetData();
+                        Log.i("UserProfileManager", user.toString());
+
+                    }
+                }
+			}
+
+			@Override
+			public void onError(String error) {
+
+			}
+		});
+	}
+
 	public void asyncGetCurrentUserInfo() {
 		ParseManager.getInstance().asyncGetCurrentUserInfo(new EMValueCallBack<EaseUser>() {
 
@@ -163,6 +195,10 @@ public class UserProfileManager {
 	}
 	private void setCurrentUserNick(String nickname) {
 		getCurrentUserInfo().setNick(nickname);
+		PreferenceManager.getInstance().setCurrentUserNick(nickname);
+	}
+	private void setCurrentAppUserNick(String nickname) {
+
 		PreferenceManager.getInstance().setCurrentUserNick(nickname);
 	}
 
