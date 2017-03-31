@@ -142,13 +142,14 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
         conversationListFragment = new ConversationListFragment();
         contactListFragment = new ContactListFragment();
         SettingsFragment settingFragment = new SettingsFragment();
+        PersonalCenterFragment personalCenterFragment = new PersonalCenterFragment();
         DicoverFragment dicoverFragment = new DicoverFragment();
         fragments = new Fragment[]{conversationListFragment, contactListFragment, settingFragment};
         mainTabAdpter = new MainTabAdpter(getSupportFragmentManager());
         mainTabAdpter.addFragment(conversationListFragment, getString(R.string.app_name));
         mainTabAdpter.addFragment(contactListFragment, getString(R.string.contacts));
         mainTabAdpter.addFragment(dicoverFragment, getString(R.string.discover));
-        mainTabAdpter.addFragment(settingFragment, getString(R.string.me));
+        mainTabAdpter.addFragment(personalCenterFragment, getString(R.string.me));
 
         layoutViewpage.setAdapter(mainTabAdpter);
         layoutTabhost.setChecked(0);
