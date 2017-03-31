@@ -1,6 +1,7 @@
 package cn.ucai.superwechat.ui;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -10,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.easemob.redpacketui.utils.RedPacketUtil;
 import com.hyphenate.chat.EMClient;
 import com.hyphenate.easeui.utils.EaseUserUtils;
 
@@ -80,16 +82,20 @@ public class PersonalCenterFragment extends Fragment {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.layout_avatar:
+                startActivity(new Intent(getActivity(), UserProfileActivity.class));
                 break;
             case R.id.layout_photo:
                 break;
             case R.id.layout_collect:
+
                 break;
             case R.id.layout_money:
+                RedPacketUtil.startChangeActivity(getContext());
                 break;
             case R.id.layout_smail:
                 break;
             case R.id.layout_settings:
+                startActivity(new Intent(getActivity(), SettingsActivity.class));
                 break;
         }
     }
