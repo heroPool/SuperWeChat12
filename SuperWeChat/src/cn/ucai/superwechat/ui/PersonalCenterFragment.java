@@ -10,10 +10,14 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.hyphenate.chat.EMClient;
+import com.hyphenate.easeui.utils.EaseUserUtils;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import cn.ucai.superwechat.Constant;
 import cn.ucai.superwechat.R;
 
 
@@ -43,7 +47,26 @@ public class PersonalCenterFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_personal_center, container, false);
         unbinder = ButterKnife.bind(this, view);
+        iniData();
         return view;
+    }
+
+    //settingsfragment移动过来
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (((MainActivity) getActivity()).isConflict) {
+            outState.putBoolean("isConflict", true);
+        } else if (((MainActivity) getActivity()).getCurrentAccountRemoved()) {
+            outState.putBoolean(Constant.ACCOUNT_REMOVED, true);
+        }
+    }
+
+    private void iniData() {
+        String currentUser = EMClient.getInstance().getCurrentUser();
+        textUsername.setText(currentUser);
+        EaseUserUtils.setAppUserNick(currentUser, textUsernick);
+        EaseUserUtils.setAppUserAvatar(getContext(), currentUser, imagePersonalAvatar);
     }
 
     @Override

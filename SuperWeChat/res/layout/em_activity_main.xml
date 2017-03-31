@@ -7,11 +7,19 @@
     android:layout_height="match_parent">
 
     <!--<include android:id="@+id/layout_title" layout="@layout/title_layout"/>-->
+    <!--<cn.ucai.superwechat.widget.MFViewPager-->
+        <!--android:id="@+id/layout_viewpage"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:paddingBottom="48dp">-->
+    <!--</cn.ucai.superwechat.widget.MFViewPager>-->
     <cn.ucai.superwechat.widget.MFViewPager
         android:id="@+id/layout_viewpage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingBottom="48dp">
+
+
     </cn.ucai.superwechat.widget.MFViewPager>
     <LinearLayout
         android:id="@+id/main_bottom"

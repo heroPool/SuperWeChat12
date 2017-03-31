@@ -41,6 +41,7 @@ public class UserProfileManager {
     private boolean isSyncingContactInfosWithServer = false;
 
     private EaseUser currentUser;
+    private User currentAppUser;
     IUserRegisterModel userRegisterModel;
 
 
@@ -136,6 +137,16 @@ public class UserProfileManager {
         return currentUser;
     }
 
+    public synchronized User getAppCurrentUserInfo() {
+        if (currentUser == null) {
+            String username = EMClient.getInstance().getCurrentUser();
+            currentAppUser = new User(username);
+            String nick = getCurrentUserNick();
+            currentAppUser.setMUserNick((nick != null) ? nick : username);
+            currentAppUser.setMAvatarPath(getCurrentUserAvatar());
+        }
+        return currentAppUser;
+    }
     public boolean updateCurrentUserNickName(final String nickname) {
         boolean isSuccess = ParseManager.getInstance().updateParseNickName(nickname);
         if (isSuccess) {

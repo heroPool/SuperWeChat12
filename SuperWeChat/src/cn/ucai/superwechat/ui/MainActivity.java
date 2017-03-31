@@ -68,7 +68,7 @@ import cn.ucai.superwechat.widget.DMTabHost;
 import cn.ucai.superwechat.widget.MFViewPager;
 
 @SuppressLint("NewApi")
-public class MainActivity extends BaseActivity implements ViewPager.OnPageChangeListener,DMTabHost.OnCheckedChangeListener{
+public class MainActivity extends BaseActivity implements ViewPager.OnPageChangeListener, DMTabHost.OnCheckedChangeListener {
 
     protected static final String TAG = "MainActivity";
     @BindView(R.id.layout_viewpage)
@@ -107,11 +107,11 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.em_activity_main);
         SavePower();
-
+        MFViewPager.class.getProtectionDomain();
         //make sure activity will not in background if user is logged into another device or removed
         if (checkAccount(savedInstanceState)) return;
-        setContentView(R.layout.em_activity_main);
         ButterKnife.bind(this);
         // runtime permission for android 6.0, just require all permissions here for simple
         requestPermissions();
@@ -141,10 +141,11 @@ public class MainActivity extends BaseActivity implements ViewPager.OnPageChange
     private void initFragment() {
         conversationListFragment = new ConversationListFragment();
         contactListFragment = new ContactListFragment();
-        SettingsFragment settingFragment = new SettingsFragment();
+
         PersonalCenterFragment personalCenterFragment = new PersonalCenterFragment();
         DicoverFragment dicoverFragment = new DicoverFragment();
-        fragments = new Fragment[]{conversationListFragment, contactListFragment, settingFragment};
+        fragments = new Fragment[]{conversationListFragment, contactListFragment, dicoverFragment,
+                personalCenterFragment};
         mainTabAdpter = new MainTabAdpter(getSupportFragmentManager());
         mainTabAdpter.addFragment(conversationListFragment, getString(R.string.app_name));
         mainTabAdpter.addFragment(contactListFragment, getString(R.string.contacts));
